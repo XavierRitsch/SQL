@@ -256,3 +256,77 @@ WHERE employee.emp_id IN (
 -- Find all clients who are handled by the branch
 -- that Michael Scott manages
 -- Assume you know Michaeld's ID
+
+
+-- Get client_name from branch_id
+SELECT client_name
+FROM client
+WHERE branch_id = (
+    -- Get branch_id from emp_id
+    SELECT branch.branch_id
+    FROM branch
+    WHERE branch.mgr_id = (
+        -- Get emp_id of Michael Scot
+        SELECT employee.emp_id
+        FROM employee
+        WHERE first_name = 'Michael' AND last_name = 'Scott'
+        )
+    LIMIT 1);
+
+-- DELETE
+DELETE FROM employee
+WHERE emp_id = 102;
+
+SELECT * FROM branch;
+
+-- TRIGGERS
+
+-- return added employee
+DELIMITER $$
+CREATE
+    TRIGGER my_trigger BEFORE INSERT
+    ON employee
+    FOR EACH ROW BEGIN
+        INSERT INTO trigger_test VALUES ('added new employee');
+    END$$
+DELIMITER ;
+
+INSERT INTO employee
+VALUES(109, 'Oscar', 'Martinez', '1968-02-19', 'M', 69000, 106, 3);
+
+-- return the name of the new employee
+DELIMITER $$
+CREATE
+    TRIGGER my_trigger2 BEFORE INSERT
+    ON employee
+    FOR EACH ROW BEGIN
+        INSERT INTO trigger_test VALUES (NEW.first_name);
+    END$$
+DELIMITER ;
+
+--
+
+INSERT INTO employee
+VALUES(109, 'Oscar', 'Martinez', '1968-02-19', 'M', 69000, 106, 3);
+
+-- return the name of the new employee
+
+DELIMITER $$
+CREATE
+    TRIGGER my_trigger3 BEFORE INSERT
+    ON employee
+    FOR EACH ROW BEGIN
+        IF NEW.sex = 'M' THEN
+            INSERT INTO trigger_test VALUES ('added male employee');
+        IF NEW.sex = 'F' THEN
+            INSERT INTO trigger_test VALUES ('added female employee');
+        ELSE
+            INSERT INTO trigger_test VALUES ('added other employee');
+        END IF;
+    END$$
+DELIMITER ;
+
+INSERT INTO employee
+VALUES(1011, 'Pam', 'Beesly', '1988-02-19', 'F', 69000, 106, 3);
+
+SELECT * FROM trigger_test;
